@@ -386,7 +386,7 @@ class Instagram
      * @throws InstagramException
      * @throws InstagramNotFoundException
      */
-    public function getMediasByUserId($id, $count = 12, $maxId = '')
+    public function getMediasByUserId($id, $array = false, $count = 12, $maxId = '')
     {
         $index = 0;
         $medias = [];
@@ -422,7 +422,7 @@ class Instagram
                 if ($index === $count) {
                     return $medias;
                 }
-                $medias[] = Media::create($mediaArray['node']);
+                $medias[] = !$array ? Media::create($mediaArray['node']) : $mediaArray['node'];
                 $index++;
             }
             $maxId = $arr['data']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor'];
@@ -1376,7 +1376,7 @@ class Instagram
      * @return array
      * @throws InstagramException
      */
-    public function getStories($reel_ids = null, $array = false)
+    public function getStories($reel_ids = null)
     {
         $variables = ['precomposed_overlay' => false, 'reel_ids' => []];
         if (empty($reel_ids)) {
@@ -1419,21 +1419,13 @@ class Instagram
 
         $stories = [];
         foreach ($jsonResponse['data']['reels_media'] as $user) {
-            if (!$array) {
-                $UserStories = UserStories::create();
-                $UserStories->setOwner(Account::create($user['user']));
-                foreach ($user['items'] as $item) {
-                    $UserStories->addStory(Story::create($item));
-                }
-
-                $stories[] = $UserStories;
-            } else {
-                foreach ($user['items'] as $item) {
-                    $stories[] = $item;
-                }
-
-                $stories[] = $UserStories;
+            $UserStories = UserStories::create();
+            $UserStories->setOwner(Account::create($user['user']));
+            foreach ($user['items'] as $item) {
+                $UserStories->addStory(Story::create($item));
             }
+
+            $stories[] = $UserStories;
         }
         return $stories;
     }
