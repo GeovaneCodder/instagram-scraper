@@ -530,10 +530,10 @@ class Instagram
      * @throws InstagramException
      * @throws InstagramNotFoundException
      */
-    public function getMediaById($mediaId)
+    public function getMediaById($mediaId, $array = false)
     {
         $mediaLink = Media::getLinkFromId($mediaId);
-        return $this->getMediaByUrl($mediaLink);
+        return $this->getMediaByUrl($mediaLink, $array);
     }
 
     /**
@@ -543,7 +543,7 @@ class Instagram
      * @throws InstagramException
      * @throws InstagramNotFoundException
      */
-    public function getMediaByUrl($mediaUrl)
+    public function getMediaByUrl($mediaUrl, $array = false)
     {
         if (filter_var($mediaUrl, FILTER_VALIDATE_URL) === false) {
             throw new InvalidArgumentException('Malformed media url');
@@ -562,7 +562,10 @@ class Instagram
         if (!isset($mediaArray['graphql']['shortcode_media'])) {
             throw new InstagramException('Media with this code does not exist');
         }
-        return Media::create($mediaArray['graphql']['shortcode_media']);
+
+        return !$array ?
+            Media::create($mediaArray['graphql']['shortcode_media']) :
+            $mediaArray['graphql']['shortcode_media'];
     }
 
     /**
